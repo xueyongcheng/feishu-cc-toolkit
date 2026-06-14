@@ -1,0 +1,6 @@
+# local config — never commit (holds proxy/path config; may reference secrets)
+.env
+
+# logs / macOS cruft
+*.log
+.DS_Store

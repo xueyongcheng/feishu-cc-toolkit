@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>ai.lark-channel-bridge.bot.__PROFILE__</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>__NODE_BIN__</string>
+        <string>__BRIDGE_BIN__</string>
+        <string>run</string>
+        <string>--profile</string>
+        <string>__PROFILE__</string>
+    </array>
+    <key>RunAtLoad</key>
+    <true/>
+    <key>KeepAlive</key>
+    <true/>
+    <!-- 63 (octal 077): keep conversation logs unreadable by other local users -->
+    <key>Umask</key>
+    <integer>63</integer>
+    <key>StandardOutPath</key>
+    <string>__LARK_CHANNEL_HOME__/profiles/__PROFILE__/logs/daemon/daemon-stdout.log</string>
+    <key>StandardErrorPath</key>
+    <string>__LARK_CHANNEL_HOME__/profiles/__PROFILE__/logs/daemon/daemon-stderr.log</string>
+    <key>EnvironmentVariables</key>
+    <dict>
+        <!-- Wrapper dir MUST come first so the bridge calls our proxy-split
+             claude / lark-cli instead of the real ones. NO http(s)_proxy here. -->
+        <key>PATH</key>
+        <string>__WRAPPER_DIR__:__NODE_DIR__:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+        <key>LARK_CHANNEL_HOME</key>
+        <string>__LARK_CHANNEL_HOME__</string>
+        <!-- Consumed by bin/claude.wrapper.sh and bin/lark-cli.wrapper.sh -->
+        <key>PROXY_HTTP</key>
+        <string>__PROXY_HTTP__</string>
+        <key>CLAUDE_BIN</key>
+        <string>__CLAUDE_BIN__</string>
+        <key>LARK_CLI_BIN</key>
+        <string>__LARK_CLI_BIN__</string>
+    </dict>
+</dict>
+</plist>
