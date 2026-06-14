@@ -25,6 +25,9 @@
 
 ## 安装
 
+> 干净机器（什么都没装）或在代理后面？按 [docs/install-from-scratch.md](docs/install-from-scratch.md)
+> 走完整链路。下面是快捷版：
+
 ```bash
 # 1. 装上游的桥（如果还没装）
 npm i -g lark-channel-bridge

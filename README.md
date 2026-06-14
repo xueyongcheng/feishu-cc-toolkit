@@ -31,6 +31,9 @@ and the docs.
 
 ## Install
 
+> Clean machine with nothing set up, or behind a proxy? Follow the full chain in
+> [docs/install-from-scratch.md](docs/install-from-scratch.md). The quick version:
+
 ```bash
 # 1. Install the upstream bridge (if you haven't)
 npm i -g lark-channel-bridge
