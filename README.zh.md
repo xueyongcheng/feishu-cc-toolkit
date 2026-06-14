@@ -1,27 +1,29 @@
 # feishu-cc-toolkit
 
-[飞书 ↔ Claude Code 桥][upstream] 的伴生工具层：让桥在**走外网代理的环境下也能跑通**，
-补一个**上下文用量查询**，并附一份关于建群、免 @ 投递、工作目录绑定的**运维手册**。
+在飞书里用本机 Claude Code，**哪怕 Anthropic 只能走代理才连得上**。这是
+[zarazhangrui 的 `lark-channel-bridge`][upstream]（飞书 ↔ Claude Code 桥）之上的伴生工具层，
+**不是 fork**——它把上游从 npm 装好、工作在它之上，补齐让它在「国内网络 + 代理」环境下跑通的那几块，
+并做成一把安装。
 
-> English: [README.md](README.md)
+> English: [README.md](README.md)。桥的核心是 zarazhangrui 的 MIT 作品，见 [CREDITS.md](CREDITS.md)。
 
-这**不是** fork。它把上游 [`lark-channel-bridge`][upstream] 作为依赖安装，工作在它之上。
-桥的核心是 zarazhangrui 的 MIT 作品，见 [CREDITS.md](CREDITS.md)。
+## 在 zara 的桥基础上解决了哪些问题
+
+[zara 的 `lark-channel-bridge`][upstream] 本身是个好桥，但它默认的环境不是人人都满足。
+本工具包在**不 fork** 它的前提下把这些缺口补上：
+
+| 光用上游桥的问题 | 本工具包补的 |
+|---|---|
+| **在外网代理后面连不上。** claude 访问 Anthropic 必须走代理，但飞书 SDK 一探到 `http(s)_proxy` 就给**所有**飞书请求套代理——飞书是国内服务，被外网代理劫持就 `CONNECT` 被 reset / bot 身份解析失败；而 claude **不走**代理又撞 `403`。 | **代理隔离（proxy-split）**：桥本体不带代理（飞书直连），代理只注入给 `claude` 子进程。→ [docs/proxy-split.md](docs/proxy-split.md) |
+| **飞书里看不到上下文用量。** 飞书入口没有进度条，不知道会话满没满。 | **`/ctx`** —— 报当前会话的 `已用 / 窗口` token 占用。 |
+| **安装繁琐、还容易再弄坏。** 手搭代理 wrapper、launchd plist、钉死 node 版本的守护进程，以及一个会悄悄把代理重新弄坏的 `start`。 | **一把安装**：`install-deps.sh` 从 npm 拉上游，`install.sh` 用安全姿势配好 wrapper + plist + 守护进程，还自动绕过首启撞锁。 |
+| **运维坑没人写下来。** 建群、免 @ 投递、工作目录绑定、403/`CONNECT` 排错。 | 一份 [docs/](docs/) **运维手册**——[建群与免@](docs/group-setup.md)、[工作目录](docs/workspaces.md)、[排错](docs/troubleshooting.md)。 |
 
 ## 适合谁
 
 你在飞书里通过 `lark-channel-bridge` 用 Claude Code，且**访问 Anthropic 必须走外网 HTTP 代理**，
-而飞书（国内服务）必须**直连**。上游的桥在这种环境会挂，本工具包干净地修好它。
+而飞书（国内服务）必须**直连**。光用上游的桥在这种环境会挂，本工具包干净地修好它。
 如果你根本不需要代理，那你可能只想要 `/ctx` 命令和这份文档。
-
-## 它补了什么
-
-- **代理隔离（proxy-split）** —— 桥本体不带代理（飞书直连），代理只注入给 `claude` 子进程。
-  一边解决飞书 `CONNECT` / bot 身份解析失败，另一边解决 Anthropic `403`。
-  → [docs/proxy-split.md](docs/proxy-split.md)
-- **`/ctx`** —— 飞书入口没有上下文进度条，这个命令报当前会话的 `已用 / 窗口` token 占用。
-- **运维手册** —— [建群与免 @ 投递](docs/group-setup.md)、[工作目录绑定](docs/workspaces.md)、
-  [排错](docs/troubleshooting.md)。
 
 ## 安装
 

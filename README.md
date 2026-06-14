@@ -1,33 +1,32 @@
 # feishu-cc-toolkit
 
-A companion layer for the [Feishu ↔ Claude Code bridge][upstream] that makes it
-work **behind an outbound proxy**, adds a **context-usage readout**, and ships
-an **operations playbook** for groups, mention-free delivery, and workspace
-binding.
+Talk to your local Claude Code from Feishu, **even when Anthropic is only
+reachable through a proxy**. This is a companion layer on top of
+[zarazhangrui's `lark-channel-bridge`][upstream] (the Feishu ↔ Claude Code bridge)
+— not a fork. It installs the upstream from npm and sits on top, adding the
+pieces that make it work in a proxied, China-network setup, plus a one-command
+install.
 
-> 中文文档见 [README.zh.md](README.zh.md)。
+> 中文文档见 [README.zh.md](README.zh.md)。Bridge core © zarazhangrui, MIT — see [CREDITS.md](CREDITS.md).
 
-This is **not** a fork. It installs the upstream [`lark-channel-bridge`][upstream]
-as a dependency and sits on top of it. The bridge core is zarazhangrui's MIT
-work — see [CREDITS.md](CREDITS.md).
+## What it solves (on top of zara's bridge)
+
+[zara's `lark-channel-bridge`][upstream] is a great bridge, but it assumes a setup
+that doesn't hold for everyone. This toolkit closes those gaps without forking it:
+
+| Problem with the bridge alone | What this toolkit adds |
+|---|---|
+| **Behind an outbound proxy it can't connect.** Claude needs the proxy to reach Anthropic, but the Feishu SDK force-proxies every Feishu call the moment it sees `http(s)_proxy` — and Feishu (a CN service) breaks through an overseas proxy (`CONNECT` reset / bot-identity errors), while Claude *without* the proxy hits a `403`. | **Proxy-split**: the bridge runs with no proxy (Feishu stays direct); the proxy is injected only into the `claude` child. → [docs/proxy-split.md](docs/proxy-split.md) |
+| **No way to see context usage from Feishu.** The Feishu entry has no progress bar, so you can't tell how full the session is. | **`/ctx`** — reports `used / window` tokens for the active session. |
+| **Setup is fiddly and easy to re-break.** Hand-built proxy wrappers, a launchd plist, a node-version-pinned daemon, and a `start` command that silently re-breaks the proxy. | **One-command install**: `install-deps.sh` pulls the upstream from npm; `install.sh` wires the wrappers + plist + daemon the safe way and auto-recovers the first-start race. |
+| **The operational gotchas aren't written down.** Group setup, mention-free delivery, workspace binding, 403/`CONNECT` debugging. | An **ops playbook** in [docs/](docs/) — [groups & mention-free](docs/group-setup.md), [workspaces](docs/workspaces.md), [troubleshooting](docs/troubleshooting.md). |
 
 ## Who this is for
 
 You run Claude Code from Feishu via `lark-channel-bridge`, and you **must reach
 Anthropic through an outbound HTTP proxy** while Feishu (a domestic CN service)
-must stay **direct**. The upstream bridge breaks in that setup; this toolkit
-fixes it cleanly. If you don't need a proxy, you may only want the `/ctx` command
-and the docs.
-
-## What it adds
-
-- **Proxy-split** — bridge runs with no proxy (Feishu direct); the proxy is
-  injected only into the `claude` child. Solves `CONNECT` / bot-identity failures
-  on one side and Anthropic `403` on the other. → [docs/proxy-split.md](docs/proxy-split.md)
-- **`/ctx`** — context-usage readout for the Feishu entry, which has no progress
-  bar. Reports `current / window` tokens for the active session.
-- **Operations playbook** — [group setup & mention-free delivery](docs/group-setup.md),
-  [workspace binding](docs/workspaces.md), [troubleshooting](docs/troubleshooting.md).
+must stay **direct**. The bridge alone breaks in that setup; this toolkit fixes it
+cleanly. If you don't need a proxy, you may only want the `/ctx` command and the docs.
 
 ## Install
 
