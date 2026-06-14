@@ -78,18 +78,23 @@ UID_NUM="$(id -u)"
 LABEL="ai.lark-channel-bridge.bot.$PROFILE"
 launchctl bootout "gui/$UID_NUM/$LABEL" 2>/dev/null || true
 launchctl bootstrap "gui/$UID_NUM" "$PLIST"
-# The very first launch right after the QR wizard can race the wizard's lock
-# release: the daemon hits the single-instance guard and exits cleanly (exit 0),
-# leaving a registered-but-dead service. Force a fresh start so we never ship a
-# dead daemon.
-sleep 1
-launchctl kickstart -k "gui/$UID_NUM/$LABEL" 2>/dev/null || true
-sleep 1
-if launchctl print "gui/$UID_NUM/$LABEL" 2>/dev/null | grep -q 'pid = '; then
+# The very first launch right after the QR wizard can race the wizard's
+# WS-registration release: the daemon hits the single-instance guard and exits
+# cleanly (exit 0), leaving a registered-but-dead service. Poll for a live PID,
+# kicking it once midway, so we never finish with a dead daemon.
+printf 'Starting daemon'
+up=""
+for i in $(seq 1 15); do
+  if launchctl print "gui/$UID_NUM/$LABEL" 2>/dev/null | grep -q 'pid = '; then up=1; break; fi
+  if [ "$i" = "3" ]; then launchctl kickstart -k "gui/$UID_NUM/$LABEL" 2>/dev/null || true; fi
+  printf '.'; sleep 2
+done
+echo
+if [ -n "$up" ]; then
   echo "Daemon $LABEL is running."
 else
-  echo "NOTE: daemon has no PID yet (first start can race the wizard lock)."
-  echo "      Run 'lark-channel-bridge restart' and re-check 'status'."
+  echo "NOTE: daemon not up yet (first start can race the wizard's WS lock)."
+  echo "      Wait ~30s, run 'lark-channel-bridge restart', and re-check 'status'."
 fi
 
 cat <<EOF
