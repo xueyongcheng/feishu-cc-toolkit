@@ -29,19 +29,25 @@
 > 走完整链路。下面是快捷版：
 
 ```bash
-# 1. 装上游的桥（如果还没装）
-npm i -g lark-channel-bridge
-#    并按上游 README 配好 bot 身份。
+# 0. 拉本工具包
+git clone https://github.com/xueyongcheng/feishu-cc-toolkit && cd feishu-cc-toolkit
 
-# 2. 配置本工具包
-git clone https://github.com/<you>/feishu-cc-toolkit
-cd feishu-cc-toolkit
-cp .env.example .env
-$EDITOR .env            # 至少填 PROXY_HTTP（你本地代理的地址）
+# 1. 从 npm 装上游依赖（zara 的桥 + lark-cli），不用自己 clone 任何仓
+bash scripts/install-deps.sh
 
-# 3. 安装 wrapper + /ctx + launchd 守护进程
+# 2. 绑飞书 bot（交互式扫码，没法自动化）
+env -u http_proxy -u https_proxy -u HTTP_PROXY -u HTTPS_PROXY -u all_proxy -u ALL_PROXY \
+  lark-channel-bridge run --profile claude --agent claude
+
+# 3. 配置 + 安装本工具包
+cp .env.example .env    # 填 PROXY_HTTP
 bash scripts/install.sh
 ```
+
+> 上游的桥**不是**塞进本仓、也不用你 clone——它是 npm 包 `lark-channel-bridge`，
+> `install-deps.sh`（或 `npm i -g lark-channel-bridge`）替你拉下来。出处与署名见
+> [CREDITS.md](CREDITS.md)。干净机器完整流程见
+> [docs/install-from-scratch.md](docs/install-from-scratch.md)。
 
 安装器会：把代理隔离 wrapper 写进 `~/.lark-channel/bin`，装好 `ctx.sh` 和 `/ctx` 命令，
 生成一份 launchd plist（wrapper 目录排在 `PATH` 最前、代理只隔离给 claude 子进程），

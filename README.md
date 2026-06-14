@@ -35,19 +35,25 @@ and the docs.
 > [docs/install-from-scratch.md](docs/install-from-scratch.md). The quick version:
 
 ```bash
-# 1. Install the upstream bridge (if you haven't)
-npm i -g lark-channel-bridge
-#    ...and configure the bot identity per the upstream README.
+# 0. Get this toolkit
+git clone https://github.com/xueyongcheng/feishu-cc-toolkit && cd feishu-cc-toolkit
 
-# 2. Configure this toolkit
-git clone https://github.com/<you>/feishu-cc-toolkit
-cd feishu-cc-toolkit
-cp .env.example .env
-$EDITOR .env            # set at least PROXY_HTTP
+# 1. Pull the upstream deps from npm (zara's bridge + lark-cli). No repo to clone.
+bash scripts/install-deps.sh
 
-# 3. Install wrappers + /ctx + the launchd daemon
+# 2. Bind a Feishu bot (interactive QR — can't be automated)
+env -u http_proxy -u https_proxy -u HTTP_PROXY -u HTTPS_PROXY -u all_proxy -u ALL_PROXY \
+  lark-channel-bridge run --profile claude --agent claude
+
+# 3. Configure + install the toolkit
+cp .env.example .env    # set PROXY_HTTP
 bash scripts/install.sh
 ```
+
+> The upstream bridge isn't vendored or cloned — it's the npm package
+> `lark-channel-bridge`, which `install-deps.sh` pulls for you. Source & credit:
+> [CREDITS.md](CREDITS.md). Full clean-machine walkthrough:
+> [docs/install-from-scratch.md](docs/install-from-scratch.md).
 
 The installer writes the proxy-split wrappers to `~/.lark-channel/bin`, installs
 `ctx.sh` and the `/ctx` command, generates a launchd plist with the wrapper dir

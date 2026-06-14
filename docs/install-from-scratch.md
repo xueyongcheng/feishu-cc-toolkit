@@ -21,14 +21,22 @@ HTTPS_PROXY=http://127.0.0.1:6152 https_proxy=http://127.0.0.1:6152 \
 Replace `6152` with your proxy's port. If this 403s or hangs, fix your proxy /
 Claude login first; the toolkit can't help until this passes.
 
-## 1. Prerequisites
+## 1. Prerequisites + this toolkit's deps
 
 ```bash
 node -v                       # need >= 20.12.0
 claude --version              # Claude Code installed AND logged in
-npm i -g @larksuite/cli       # the bridge shells out to lark-cli (hard dep)
-npm i -g lark-channel-bridge  # the upstream bridge
+
+# Get this toolkit, then let it pull the upstream deps from npm:
+git clone https://github.com/xueyongcheng/feishu-cc-toolkit
+cd feishu-cc-toolkit
+bash scripts/install-deps.sh  # installs zarazhangrui's lark-channel-bridge +
+                              # @larksuite/cli from npm (no repo to clone yourself)
 ```
+
+> You do **not** git-clone the upstream bridge. It's published on npm as
+> `lark-channel-bridge`; `install-deps.sh` (or `npm i -g lark-channel-bridge`)
+> pulls it for you. Source & credit: [CREDITS.md](../CREDITS.md).
 
 You also need a **local HTTP proxy already running** that can reach Anthropic
 (note its address, e.g. `http://127.0.0.1:6152`).
@@ -57,9 +65,9 @@ env -u http_proxy -u https_proxy -u HTTP_PROXY -u HTTPS_PROXY -u all_proxy -u AL
 
 ## 3. Install the toolkit (proxy-split + daemon)
 
+You already cloned it in Step 1, so from inside the repo:
+
 ```bash
-git clone https://github.com/<you>/feishu-cc-toolkit
-cd feishu-cc-toolkit
 cp .env.example .env
 $EDITOR .env                  # set PROXY_HTTP to your proxy; set NODE_BIN if you
                               # use nvm / non-Homebrew node (need a stable abs path)

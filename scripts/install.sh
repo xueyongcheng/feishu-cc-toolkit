@@ -42,7 +42,17 @@ fi
 for v in CLAUDE_BIN LARK_CLI_BIN BRIDGE_BIN NODE_BIN; do
   eval "val=\${$v:-}"
   if [ -z "$val" ] || [ ! -x "$val" ]; then
-    echo "ERROR: $v not found or not executable: '${val:-}'. Set it explicitly in .env."; exit 1
+    echo "ERROR: $v not found or not executable: '${val:-}'."
+    case "$v" in
+      BRIDGE_BIN|LARK_CLI_BIN)
+        echo "  -> install the upstream deps first:  bash scripts/install-deps.sh"
+        echo "     (pulls zarazhangrui's lark-channel-bridge + @larksuite/cli from npm)";;
+      CLAUDE_BIN)
+        echo "  -> install & log in to Claude Code, or set CLAUDE_BIN in .env";;
+      NODE_BIN)
+        echo "  -> install Node >= 20.12, or set NODE_BIN in .env";;
+    esac
+    exit 1
   fi
 done
 NODE_DIR="$(dirname "$NODE_BIN")"
