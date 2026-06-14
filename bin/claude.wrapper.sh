@@ -12,7 +12,11 @@
 #
 # PROXY_HTTP and CLAUDE_BIN are provided by the daemon environment (set in the
 # launchd plist by scripts/install.sh). Do not hardcode them.
-: "${PROXY_HTTP:?claude.wrapper: PROXY_HTTP not set}"
+#
+# Running this wrapper by hand in a plain shell will fail with "PROXY_HTTP not
+# set" — that's expected, not a broken install (the plist normally supplies it).
+# To test by hand:  PROXY_HTTP=http://127.0.0.1:<port> ~/.lark-channel/bin/claude -p test
+: "${PROXY_HTTP:?PROXY_HTTP not set — normally supplied by the launchd plist. To test by hand: PROXY_HTTP=http://127.0.0.1:<port> $0 -p test}"
 export http_proxy="$PROXY_HTTP" https_proxy="$PROXY_HTTP"
 export HTTP_PROXY="$PROXY_HTTP" HTTPS_PROXY="$PROXY_HTTP"
 exec "${CLAUDE_BIN:-$HOME/.local/bin/claude}" "$@"

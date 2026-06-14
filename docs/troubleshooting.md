@@ -18,6 +18,43 @@ plist lost the wrapper PATH or `PROXY_HTTP`:
 Most common cause: you ran a bare `start` from a proxied shell. Use `restart` or
 the installer instead — see [`proxy-split.md`](proxy-split.md).
 
+## `PROXY_HTTP not set` when running `~/.lark-channel/bin/claude` by hand
+
+**Expected, not a broken install.** The wrapper reads `PROXY_HTTP` from the
+launchd plist environment, not your interactive shell. To test it by hand, set
+the var inline:
+
+```bash
+PROXY_HTTP=http://127.0.0.1:<port> ~/.lark-channel/bin/claude -p test
+```
+
+## Daemon registered but no PID right after install (first start)
+
+Symptom: `lark-channel-bridge status` (or `launchctl print`) shows the job, but
+there's no PID, `bridge ps` shows no bot, the daemon log dir is empty, and it
+exited `0`.
+
+Cause: the first launch right after the QR wizard raced the wizard's lock
+release — the daemon hit the single-instance guard and exited cleanly (exit 0).
+`install.sh` already does a `kickstart -k` to cover this, but if it still shows
+no PID:
+
+```bash
+lark-channel-bridge restart
+# or: launchctl kickstart -k gui/$(id -u)/ai.lark-channel-bridge.bot.<profile>
+```
+
+Then re-check `status`. One-time first-start quirk, not a misconfiguration.
+
+## `larkCli.localUserImport.status = failed` in config (reason `local-config-show-failed`)
+
+Non-blocking. The wizard couldn't import a local **user** identity, but the
+bot-only path (DM, and group messaging) uses the **app/bot** identity and is
+unaffected — DM the bot and confirm it replies. Only dig further if **group**
+chats fail to resolve a sender's username. To add user identity later (calendar
+/ mail / drive access), complete the user auth and switch the profile's lark-cli
+policy to `user-default` via `/config`.
+
 ## Feishu connect fails: `CONNECT` / `could not resolve bot identity`
 
 The bridge is running **with** a proxy. The daemon log shows

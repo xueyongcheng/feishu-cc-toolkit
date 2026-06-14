@@ -75,15 +75,31 @@ echo "Wrote $PLIST"
 
 # ---- (re)load daemon ----
 UID_NUM="$(id -u)"
-launchctl bootout "gui/$UID_NUM/ai.lark-channel-bridge.bot.$PROFILE" 2>/dev/null || true
+LABEL="ai.lark-channel-bridge.bot.$PROFILE"
+launchctl bootout "gui/$UID_NUM/$LABEL" 2>/dev/null || true
 launchctl bootstrap "gui/$UID_NUM" "$PLIST"
-echo "Loaded daemon ai.lark-channel-bridge.bot.$PROFILE"
+# The very first launch right after the QR wizard can race the wizard's lock
+# release: the daemon hits the single-instance guard and exits cleanly (exit 0),
+# leaving a registered-but-dead service. Force a fresh start so we never ship a
+# dead daemon.
+sleep 1
+launchctl kickstart -k "gui/$UID_NUM/$LABEL" 2>/dev/null || true
+sleep 1
+if launchctl print "gui/$UID_NUM/$LABEL" 2>/dev/null | grep -q 'pid = '; then
+  echo "Daemon $LABEL is running."
+else
+  echo "NOTE: daemon has no PID yet (first start can race the wizard lock)."
+  echo "      Run 'lark-channel-bridge restart' and re-check 'status'."
+fi
 
 cat <<EOF
 
 Done. Verify:
-  1. lark-channel-bridge status
+  1. lark-channel-bridge status                 # should show a running PID
   2. tail -n 40 "$LARK_HOME/profiles/$PROFILE/logs/daemon/daemon-stderr.log"
        expect: 'ws/connected' + 'chats-fetched', and NO 'channel: proxy detected'
-  3. "$WRAPPER_DIR/claude" -p test        # end-to-end; must NOT return a 403
+  3. PROXY_HTTP="$PROXY_HTTP" "$WRAPPER_DIR/claude" -p test   # end-to-end; must NOT 403
+       (running it WITHOUT the PROXY_HTTP= prefix errors 'PROXY_HTTP not set' —
+        that's expected: the proxy is normally supplied by the plist, not your shell.)
+  4. DM the bot in Feishu — it should reply via local Claude Code.
 EOF

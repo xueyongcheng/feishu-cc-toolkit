@@ -78,12 +78,22 @@ proxy; the proxy is injected only into the `claude` child), and loads the daemon
 ## 4. Verify
 
 ```bash
-lark-channel-bridge status                 # running
+lark-channel-bridge status                 # should show a running PID
 tail -n 40 ~/.lark-channel/profiles/claude/logs/daemon/daemon-stderr.log
                                            # expect ws/connected + chats-fetched
                                            # and NO 'channel: proxy detected'
-~/.lark-channel/bin/claude -p test         # replies, NOT 403
+
+# End-to-end proxy check. NOTE: the wrapper gets PROXY_HTTP from the plist, not
+# your shell — running it bare errors "PROXY_HTTP not set", which is EXPECTED and
+# does NOT mean a broken install. To actually test, set it inline:
+PROXY_HTTP=http://127.0.0.1:7897 ~/.lark-channel/bin/claude -p test   # replies, NOT 403
 ```
+
+> **If `status` shows the job but no PID** (and the daemon log dir is empty): the
+> first launch raced the wizard's lock release and exited cleanly. `install.sh`
+> already does a `kickstart -k` to handle this, but if it still shows no PID, run
+> `lark-channel-bridge restart` once and re-check. This is a one-time first-start
+> quirk, not a misconfiguration.
 
 Then in Feishu, **DM the bot** — it should reply via your local Claude Code.
 Try `/status`, `/help`, and `/ctx`.

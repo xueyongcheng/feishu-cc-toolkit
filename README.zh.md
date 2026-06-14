@@ -50,11 +50,15 @@ bash scripts/install.sh
 ## 验证
 
 ```bash
-lark-channel-bridge status                 # 在运行
-~/.lark-channel/bin/claude -p test         # 能回，不是 403
+lark-channel-bridge status                 # 在运行，且有 PID
+# wrapper 的 PROXY_HTTP 来自 plist、不是当前 shell。裸跑会报 "PROXY_HTTP not set"
+# （正常现象，不是装坏），要测就内联设一下：
+PROXY_HTTP=http://127.0.0.1:7897 ~/.lark-channel/bin/claude -p test   # 能回，不是 403
 ```
 
 守护进程日志应有 `ws/connected` + `chats-fetched`，且**没有** `channel: proxy detected`。
+若装完 `status` 显示有任务但**没 PID**，跑一次 `lark-channel-bridge restart`（首启撞锁的一次性现象，
+详见 [docs/troubleshooting.md](docs/troubleshooting.md)）。
 
 ## 为什么需要它（一句话）
 

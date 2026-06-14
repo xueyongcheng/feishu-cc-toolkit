@@ -58,12 +58,16 @@ bridge config is left intact).
 ## Verify
 
 ```bash
-lark-channel-bridge status                 # running
-~/.lark-channel/bin/claude -p test         # replies, NOT a 403
+lark-channel-bridge status                 # running, with a PID
+# The wrapper gets PROXY_HTTP from the plist, not your shell. Running it bare
+# errors "PROXY_HTTP not set" (expected, not a broken install) — set it inline:
+PROXY_HTTP=http://127.0.0.1:7897 ~/.lark-channel/bin/claude -p test   # replies, NOT a 403
 ```
 
 The daemon log should show `ws/connected` + `chats-fetched` and **no**
-`channel: proxy detected`.
+`channel: proxy detected`. If `status` shows the job but no PID right after
+install, run `lark-channel-bridge restart` once (a first-start race — see
+[docs/troubleshooting.md](docs/troubleshooting.md)).
 
 ## Platform
 
